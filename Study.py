@@ -37,7 +37,7 @@ def get_batch(normalized_train_data, batch_size, time_step, whole_size):
     for i in range(batch_size):
         index = np.random.randint(0,whole_size - time_step-1)
         train_x.append(normalized_train_data[index:index+time_step,:])
-        train_y.append(normalized_train_data[index+time_step+1,1])
+        train_y.append(normalized_train_data[index+time_step+1,0])
     return np.array(train_x), np.array(train_y)
 
 test_data = data[train_length+1:whole_size,:]
@@ -49,7 +49,7 @@ def get_test_data(normalized_test_data, time_step,whole_size):
     test_y = []
     for i in range(whole_size - time_step - 1):
         x = normalized_test_data [i:i+time_step,:]
-        y = normalized_test_data[i+time_step+1,1,np.newaxis]
+        y = normalized_test_data[i+time_step+1,0,np.newaxis]
         test_x.append(x.tolist())
         test_y.append(y.tolist())
     return np.array(test_x), np.array(test_y)
