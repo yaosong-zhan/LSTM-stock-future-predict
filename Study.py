@@ -12,7 +12,7 @@ import tensorflow as tf
 tf.enable_eager_execution()
 
 
-f = open('SCI.csv')
+f = open('E:\ML\mycode\ZQETF.csv')
 df = pd.read_csv(f)
 
 data = np.array(df[['Close','Open','High','Low','Volume']])
@@ -20,10 +20,10 @@ data = np.array(df[['Close','Open','High','Low','Volume']])
 
 time_step = 5
 rnn_unit = 10
-batch_size = 60
+batch_size = 50
 input_size = 5
 output_size = 1
-lr = 0.0006
+lr = 0.0005
 train_length = round(data.shape[0]*0.7)
 train_data = data[0:train_length,:]
 mean = np.mean(train_data,axis = 0)
@@ -60,7 +60,7 @@ def get_test_data(normalized_test_data, time_step,whole_size):
 class rNN(tf.keras.Model):
     def __init__(self):
         super().__init__()
-        self.cell = tf.nn.rnn_cell.BasicLSTMCell(num_units = 60)
+        self.cell = tf.nn.rnn_cell.BasicLSTMCell(num_units = 50)
         self.dense = tf.keras.layers.Dense(units = 1)
         
     def call(self, inputs):
@@ -83,7 +83,16 @@ for i in range(num_epoch):
     X,y = get_batch(normalized_train_data, batch_size, time_step,train_size)
     with tf.GradientTape() as tape:
         y_hat = model(X)
-        loss = tf.reduce_mean(tf.square(tf.reshape(y_hat*std[0]+mean[0],[-1])-tf.reshape(y*std[0]+mean[0],[-1])))
+        flag1 = tf.reshape(y_hat,[-1])-tf.reshape(X[:,time_step-1,0],[-1])
+        flag2 = tf.reshape(y,[-1])-tf.reshape(X[:,time_step-1,0],[-1])
+        flag = flag1*flag2
+        weight = np.zeros(batch_size)
+        for j in range(batch_size):
+            if flag[j]>0:
+                weight[j] = 0.5
+            else:
+                weight[j] = 5
+        loss = tf.reduce_sum(weight*tf.abs(tf.reshape(y_hat,[-1])-tf.reshape(y,[-1])))
         if i%100 == 0:
             print("batch %d:loss %f" % (i, loss.numpy()))
     grads = tape.gradient(loss, model.variables)
